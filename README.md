@@ -125,4 +125,61 @@ def tamis_attention_structure(Q, K, V, block_size=64, seuil_tamis=0.0):
                 
     taux_elimination = (calculs_elimines / (num_blocks * num_blocks)) * 100
     return O, taux_elimination
+``````python
+import numpy as np
+
+def fractal_blob_solver(N_total, num_clusters=4):
+    """
+    Solveur de Blob Hiérarchique (Fractal) pour haute complexité.
+    Divise un réseau géant en sous-régions pour contourner le coût O(N^3).
+    """
+    nodes_per_cluster = N_total // num_clusters
+    
+    # 1. ÉCHELLE MACRO : Flux entre les super-régions
+    A_macro = np.eye(num_clusters) * 2.0
+    for i in range(num_clusters - 1):
+        A_macro[i, i+1] = -1.0
+        A_macro[i+1, i] = -1.0
+        
+    B_macro = np.zeros(num_clusters)
+    B_macro[0] = 1.0
+    B_macro[-1] = -1.0
+    
+    P_macro = np.linalg.solve(A_macro, B_macro)
+    
+    # 2. ÉCHELLE MICRO : Résolutions locales autonomes
+    time_micro_total = 0.0
+    total_tubes_atrophies = 0
+    total_tubes_calculés = 0
+    
+    for c_idx in range(num_clusters):
+        np.random.seed(42 + c_idx)
+        masque_local = np.random.rand(nodes_per_cluster, nodes_per_cluster) > 0.90
+        distances_locales = np.where(masque_local, np.random.uniform(1.0, 5.0, (nodes_per_cluster, nodes_per_cluster)), 0.0)
+        np.fill_diagonal(distances_locales, 0.0)
+        
+        flux_local = np.zeros(nodes_per_cluster)
+        flux_local[0] = P_macro[c_idx]
+        flux_local[-1] = -P_macro[c_idx]
+        
+        C_local = np.where(distances_locales > 0, 1.0 / distances_locales, 0.0)
+        A_local = np.zeros((nodes_per_cluster, nodes_per_cluster))
+        for i in range(nodes_per_cluster):
+            A_local[i, i] = np.sum(C_local[i, :]) + 1e-5
+            for j in range(nodes_per_cluster):
+                if i != j:
+                    A_local[i, j] = -C_local[i, j]
+                    
+        try:
+            P_local = np.linalg.solve(A_local, flux_local)
+            P_diff = np.abs(P_local[:, None] - P_local)
+            tubes_actifs = np.sum(P_diff > 0.1)
+            tubes_totals = np.sum(distances_locales > 0.0)
+            
+            total_tubes_calculés += tubes_totals
+            total_tubes_atrophies += (tubes_totals - tubes_actifs)
+        except np.linalg.LinAlgError:
+            pass
+            
+    return P_macro, total_tubes_atrophies, total_tubes_calculés
 ```
