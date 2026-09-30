@@ -1,4 +1,4 @@
-# 🧪 Fractal Lantern Equations
+# 🧪 Fractal Lantern Applications 
 
 Ce dépôt formalise la traduction pratique de la théorie de la saturation de l'information face aux contraintes physiques du silicium. Il regroupe les implémentations vectorisées NumPy des filtres topologiques et structures double échelle de l'heptalogie de NatLekien.
 
